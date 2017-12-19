@@ -12,7 +12,7 @@ public class Zagueiro extends Thread{
 private static final double ERROR_RADIUS = 2.0d;
 	
 	//private enum State { ATTACKING, RETURN_TO_HOME };
-	private enum State {RETURN_TO_HOME, BLOCKING, WAITING};
+	private enum State {RETURN_TO_HOME, BLOCKING, WAITING, ALINING};
 
 	private PlayerCommander commander;
 	private State state;
@@ -22,6 +22,8 @@ private static final double ERROR_RADIUS = 2.0d;
 	private MatchPerception  matchInfo;
 	
 	private Vector2D homebase; //posição base do jogador
+	
+	private boolean flagAlign=true;
 	
 	public Zagueiro(PlayerCommander player, double x, double y) {
 		commander = player;
@@ -65,6 +67,9 @@ private static final double ERROR_RADIUS = 2.0d;
 				case WAITING:
 					stateWaiting();
 					break;
+				case ALINING:
+					stateAlining();
+					break;
 				default:
 					_printf("Invalid state: %s", state);
 					break;	
@@ -92,60 +97,61 @@ private static final double ERROR_RADIUS = 2.0d;
 		}
 	}
 	
+	/////// Estado ALINING ///////
+	private void stateAlining(){
+
+		Vector2D playerPosition = selfInfo.getPosition();
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		if(!closerToTheBall()){
+			state = State.RETURN_TO_HOME;
+			return;
+		}
+		
+		if((playerPosition.getY() <= ballPosition.getY()+2)&&(playerPosition.getY()>= ballPosition.getY()-2)){
+			state = State.WAITING;
+			return;
+		}else{
+			if(ballPosition.getY() > playerPosition.getY()){
+				commander.doTurnToPoint(new Vector2D(playerPosition.getX(),34));
+				flagAlign = false;
+			}else{
+				commander.doTurnToPoint(new Vector2D(playerPosition.getX(),-34));
+				flagAlign = false;
+			}
+			commander.doDash(100);
+		}
+		
+	}
+	
 	/////// Estado WAITING ///////
 	private void stateWaiting(){
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		Vector2D playerPosition = selfInfo.getPosition();
+		//Vector2D playerPosition = selfInfo.getPosition();
 		_printf("Entrou no waiting");
 		if(ballPosition.getX() <= 0){
 			state = State.BLOCKING;
 			return;
 		}else{
-			if((ballPosition.getY() > 0) && (playerPosition.getY() > 0)){
-				if(ballPosition.getY() > playerPosition.getY()){
-					//commander.doTurnToDirection(new Vector2D(playerPosition.getX(),34));
-					commander.doTurnToPoint(new Vector2D(playerPosition.getX(), 34));
-					commander.doDashBlocking(50.0);
-					commander.doTurnBlocking(180);
-					commander.doDashBlocking(50.0);
-					//_printf("dashing");
-				}else{
-					//commander.doTurnToDirection(new Vector2D(playerPosition.getX(),-34));
-					commander.doTurnToPoint(new Vector2D(playerPosition.getX(), -34));
-					commander.doDashBlocking(50.0);
-					commander.doTurnBlocking(180);
-					commander.doDashBlocking(50.0);
-				}
+			if(isMySide()){
+				state = State.ALINING;
+				return;
 			}else{
-				if(ballPosition.getY() > playerPosition.getY()){
-					//commander.doTurnToDirection(new Vector2D(playerPosition.getX(),34));
-					commander.doTurnToPoint(new Vector2D(playerPosition.getX(), -34));
-					commander.doDashBlocking(50.0);
-					commander.doTurnBlocking(180);
-					commander.doDashBlocking(50.0);
-					//_printf("dashing");
-				}else{
-					//commander.doTurnToDirection(new Vector2D(playerPosition.getX(),-34));
-					commander.doTurnToPoint(new Vector2D(playerPosition.getX(), 34));
-					commander.doDashBlocking(50.0);
-					commander.doTurnBlocking(180);
-					commander.doDashBlocking(50.0);
-				}
+				state = State.RETURN_TO_HOME;
+				return;
 			}
 		}
 	}
 	
-	private void goToBallLine(){
-		
+	private boolean isMySide(){
+		if((selfInfo.getPosition().getY() > 0)&&(fieldInfo.getBall().getPosition().getY()>0)){
+			return true;
+		}
+		return false;
 	}
-
+	
 	////// Estado RETURN_TO_HOME_BASE ///////
 	
 	private void stateReturnToHomeBase() {
-//		if (closerToTheBall()) {
-//			state = State.WAITING;
-//			return;
-//		}
 		
 		if (! arrivedAt(homebase)) {			
 			if (isAlignedTo(homebase)) {
