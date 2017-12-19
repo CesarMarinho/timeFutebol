@@ -22,6 +22,7 @@ public class Player extends Thread {
 	
 	private Vector2D homebase; //posição base do jogador
 	
+	
 	public Player(PlayerCommander player, double x, double y) {
 		commander = player;
 		homebase = new Vector2D(x, y);
