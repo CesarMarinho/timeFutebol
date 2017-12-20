@@ -2,10 +2,12 @@
 
 import java.util.ArrayList;
 
+
 import simple_soccer_lib.PlayerCommander;
 import simple_soccer_lib.perception.FieldPerception;
 import simple_soccer_lib.perception.MatchPerception;
 import simple_soccer_lib.perception.PlayerPerception;
+import simple_soccer_lib.utils.EFieldSide;
 import simple_soccer_lib.utils.EMatchState;
 import simple_soccer_lib.utils.Vector2D;
 
@@ -29,8 +31,10 @@ public class PlayerGoalkeeper extends Thread{
 	
 	public PlayerGoalkeeper(PlayerCommander player) {
 		commander = player;
-		homebase = new Vector2D(-52.4d, 0.0d);
-		selfInfo.setGoalie(true);
+		homebase = new Vector2D(52.4d, 0.0d);
+		//selfInfo.setGoalie(true);
+		home_left = new Vector2D(52.4d, 4.5d);
+		home_right = new Vector2D(52.4d, -4.5d);
 	}
 	
 	@Override
@@ -41,6 +45,13 @@ public class PlayerGoalkeeper extends Thread{
 		matchInfo = commander.perceiveMatchBlocking();
 		
 		state = State.RETURN_TO_HOME; //todos começam neste estado
+		if (selfInfo.getSide() == EFieldSide.LEFT) { //ajusta a posição base de acordo com o lado do jogador (basta mudar o sinal do x)
+			homebase.setX(- homebase.getX());
+		}
+		
+		commander.doMoveBlocking(homebase.getX(), homebase.getY());
+		
+		
 		try {
 			Thread.sleep(5000); // espera, para dar tempo de ver as mensagens iniciais
 		} catch (InterruptedException e) {
@@ -52,9 +63,6 @@ public class PlayerGoalkeeper extends Thread{
 			if (matchInfo.getState() == EMatchState.PLAY_ON) {
 			
 				switch (state) {
-				case RECEIVED_PASSING:
-					stateRECEIVED_PASSING();
-					break;
 				case RETURN_TO_HOME:
 					stateRETURN_TO_HOME();
 					break;
@@ -75,7 +83,7 @@ public class PlayerGoalkeeper extends Thread{
 	
 	private void stateATTACKING() {
 		// TODO Auto-generated method stub
-		if(fieldInfo.getBall().getPosition().getX() < 0){
+		if(fieldInfo.getBall().getPosition().getX()  < 0){
 			state = State.RETURN_TO_HOME;
 		}
 	}
@@ -83,20 +91,47 @@ public class PlayerGoalkeeper extends Thread{
 	private void stateWAITING() {
 		// TODO Auto-generated method stub
 		if(fieldInfo.getBall().getPosition().getY() > 14){
-			
+			max_attack = new Vector2D(selfInfo.getPosition().getX(), 4.0d);
+		}
+		else if(fieldInfo.getBall().getPosition().getY() < -14){
+			max_attack = new Vector2D(selfInfo.getPosition().getX(), -4.0d);
+		}
+		else{
+			max_attack = homebase;
+		}
+		
+		if(fieldInfo.getBall().getPosition().getX() > 0){
+			max_attack = new Vector2D(-42.0d, selfInfo.getPosition().getY());
+		}
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		if (arrivedAt(ballPosition)) {
+			commander.doCatch(0);
 		}
 	}
 
 	private void stateRETURN_TO_HOME() {
 		// TODO Auto-generated method stub
+		if (closerToTheBall()) {
+			state = State.WAITING;
+			return;
+		}
+		
+		if (! arrivedAt(homebase)) {			
+			if (isAlignedTo(homebase)) {
+				_printf("RTHB: Running to the base...");
+				commander.doDashBlocking(100.0d);			
+			} else {
+				_printf("RTHB: Turning...");
+				turnTo(homebase);
+			}			
+		}
 		
 	}
 
-	private void stateRECEIVED_PASSING() {
-		// TODO Auto-generated method stub
-		
+	private boolean arrivedAt(Vector2D targetPosition) {
+		Vector2D myPos = selfInfo.getPosition();
+		return Vector2D.distance(myPos, targetPosition) <= ERROR_RADIUS;
 	}
-
 	private void updatePerceptions() {
 		PlayerPerception newSelf = commander.perceiveSelf();
 		FieldPerception newField = commander.perceiveField();
@@ -138,7 +173,20 @@ public class PlayerGoalkeeper extends Thread{
 	}
 	
 	
-	
+	private void turnTo(Vector2D targetPosition) {
+		Vector2D myPos = selfInfo.getPosition();		
+		Vector2D newDirection = targetPosition.sub(myPos);
+		
+		commander.doTurnToDirectionBlocking(newDirection);
+	}
+	private boolean isAlignedTo(Vector2D targetPosition) {
+		Vector2D myPos = selfInfo.getPosition();
+		if (targetPosition == null || myPos == null) {
+			return false;			
+		}
+		double angle = selfInfo.getDirection().angleFrom(targetPosition.sub(myPos));
+		return angle < 15.0d && angle > -15.0d;
+	}
 	private double pointDistance(Vector2D player, Vector2D ball){
 		double termX = player.getX() - ball.getX();
 		double termY = player.getY() - ball.getY();
