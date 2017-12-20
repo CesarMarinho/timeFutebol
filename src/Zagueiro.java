@@ -11,7 +11,6 @@ import simple_soccer_lib.utils.Vector2D;
 public class Zagueiro extends Thread{
 private static final double ERROR_RADIUS = 2.0d;
 	
-	//private enum State { ATTACKING, RETURN_TO_HOME };
 	private enum State {RETURN_TO_HOME, BLOCKING, WAITING, ALINING};
 
 	private PlayerCommander commander;
@@ -143,7 +142,8 @@ private static final double ERROR_RADIUS = 2.0d;
 	}
 	
 	private boolean isMySide(){
-		if((selfInfo.getPosition().getY() > 0)&&(fieldInfo.getBall().getPosition().getY()>0)){
+		if(((selfInfo.getPosition().getY() > 0)&&(fieldInfo.getBall().getPosition().getY() > 0))||
+				((selfInfo.getPosition().getY() <= 0)&&(fieldInfo.getBall().getPosition().getY() <= 0))){
 			return true;
 		}
 		return false;
@@ -153,6 +153,10 @@ private static final double ERROR_RADIUS = 2.0d;
 	
 	private void stateReturnToHomeBase() {
 		
+		if(fieldInfo.getBall().getPosition().getX() < 0){
+			state = State.BLOCKING;
+			return;
+		}
 		if (! arrivedAt(homebase)) {			
 			if (isAlignedTo(homebase)) {
 				_printf("RTHB: Running to the base...");
@@ -218,26 +222,23 @@ private static final double ERROR_RADIUS = 2.0d;
 		return angle < 15.0d && angle > -15.0d;
 	}
 	
-	/////// Estado ATTACKING ///////	
+	/////// Estado BLOCKING ///////	
 	
 	private void stateBlocking() {
-		if (! closerToTheBall()) {
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		if(ballPosition.getX() >= 0){
 			state = State.RETURN_TO_HOME;
 			return;
 		}
-
-		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		
-		if (arrivedAt(ballPosition)) {
-			//commander.doKick(100.0d, 0);
-			//commander.doTurnToPoint(new Vector2D(52.0, 0.0));
-			commander.doKickToPoint(100, new Vector2D(52.0, 0.0));
-			//TODO: chutar em direção ao gol adversário
-			
+		if (arrivedAt(ballPosition)) {			
+			commander.doKickToPointBlocking(100, new Vector2D(52.0, 0.0));
+			state = State.RETURN_TO_HOME;
 		} else {
 			if (isAlignedTo(ballPosition)) {
 				_printf("ATK: Running to the ball...");
 				commander.doDashBlocking(100.0d);
+				//TODO: chutar para o atacante ou um dos laterais
 			} else {
 				_printf("ATK: Turning...");
 				turnTo(ballPosition);
