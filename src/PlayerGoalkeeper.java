@@ -30,7 +30,7 @@ public class PlayerGoalkeeper extends Thread{
 	public PlayerGoalkeeper(PlayerCommander player) {
 		commander = player;
 		homebase = new Vector2D(-52.4d, 0.0d);
-		selfInfo.setGoalie(true);
+		//selfInfo.setGoalie(true);
 	}
 	
 	@Override

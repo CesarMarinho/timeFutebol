@@ -9,9 +9,9 @@ import simple_soccer_lib.utils.EMatchState;
 import simple_soccer_lib.utils.Vector2D;
 
 public class Atacante extends Thread{
-private static final double ERROR_RADIUS = 2.0d;
+private static final double ERROR_RADIUS = 1.0d;
 	
-	private enum State { ATTACKING, RETURN_TO_HOME };
+	private enum State { ATTACKING, RETURN_TO_HOME, WAITING };
 
 	private PlayerCommander commander;
 	private State state;
@@ -31,6 +31,7 @@ private static final double ERROR_RADIUS = 2.0d;
 	public void run() {
 		_printf("Waiting initial perceptions...");
 		selfInfo  = commander.perceiveSelfBlocking();
+		System.out.println(">>>>>>>>>>>>>"+selfInfo.getUniformNumber());
 		fieldInfo = commander.perceiveFieldBlocking();
 		matchInfo = commander.perceiveMatchBlocking();
 		
@@ -61,6 +62,9 @@ private static final double ERROR_RADIUS = 2.0d;
 				case RETURN_TO_HOME:
 					stateReturnToHomeBase();
 					break;
+				case WAITING:
+					stateWaiting();
+					break;
 				default:
 					_printf("Invalid state: %s", state);
 					break;	
@@ -87,6 +91,17 @@ private static final double ERROR_RADIUS = 2.0d;
 			this.matchInfo = newMatch;
 		}
 	}
+	
+	/////// Estado WAITING ///////
+	private void stateWaiting(){
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		
+		if(ballPosition.getX() >= 0){
+			state = State.ATTACKING;
+			return;
+		}
+		commander.doTurnToPoint(ballPosition);
+	}
 
 	////// Estado RETURN_TO_HOME_BASE ///////
 	
@@ -105,7 +120,8 @@ private static final double ERROR_RADIUS = 2.0d;
 				turnTo(homebase);
 			}			
 		}
-		
+		state = State.WAITING;
+		return;		
 	}
 
 	private boolean closerToTheBall() {
@@ -170,10 +186,9 @@ private static final double ERROR_RADIUS = 2.0d;
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		
 		if (arrivedAt(ballPosition)) {
-			//commander.doKick(100.0d, 0);
-			//commander.doTurnToPoint(new Vector2D(52.0, 0.0));
-			commander.doKickToPoint(100, new Vector2D(52.0, 0.0));
-			//TODO: chutar em direção ao gol adversário
+			
+			commander.doTurnToPointBlocking(new Vector2D(52.0, 0.0));
+			commander.doKickBlocking(15, 0);
 			
 		} else {
 			if (isAlignedTo(ballPosition)) {

@@ -22,7 +22,7 @@ private static final double ERROR_RADIUS = 2.0d;
 	
 	private Vector2D homebase; //posição base do jogador
 	
-	private boolean flagAlign=true;
+	//private boolean flagAlign=true;
 	
 	public Zagueiro(PlayerCommander player, double x, double y) {
 		commander = player;
@@ -33,6 +33,7 @@ private static final double ERROR_RADIUS = 2.0d;
 	public void run() {
 		_printf("Waiting initial perceptions...");
 		selfInfo  = commander.perceiveSelfBlocking();
+		System.out.println(">>>>>>>>>>>>>"+selfInfo.getUniformNumber());
 		fieldInfo = commander.perceiveFieldBlocking();
 		matchInfo = commander.perceiveMatchBlocking();
 		
@@ -112,10 +113,10 @@ private static final double ERROR_RADIUS = 2.0d;
 		}else{
 			if(ballPosition.getY() > playerPosition.getY()){
 				commander.doTurnToPoint(new Vector2D(playerPosition.getX(),34));
-				flagAlign = false;
+				//flagAlign = false;
 			}else{
 				commander.doTurnToPoint(new Vector2D(playerPosition.getX(),-34));
-				flagAlign = false;
+				//flagAlign = false;
 			}
 			commander.doDash(100);
 		}
@@ -232,19 +233,20 @@ private static final double ERROR_RADIUS = 2.0d;
 		}
 		
 		if (arrivedAt(ballPosition)) {			
-			commander.doKickToPointBlocking(100, new Vector2D(52.0, 0.0));
+			//commander.doKickToPointBlocking(100, new Vector2D(52.0, 0.0));
+			commander.doKickToPointBlocking(100, fieldInfo.getTeamPlayer(selfInfo.getSide(), 4).getPosition());
 			state = State.RETURN_TO_HOME;
 		} else {
 			if (isAlignedTo(ballPosition)) {
 				_printf("ATK: Running to the ball...");
-				commander.doDashBlocking(100.0d);
-				//TODO: chutar para o atacante ou um dos laterais
+				commander.doDashBlocking(100.0d);				
+				
 			} else {
 				_printf("ATK: Turning...");
 				turnTo(ballPosition);
 			}
 		}		
-	}
+	}	
 
 	//for debugging
 	public void _printf(String format, Object...objects) {
