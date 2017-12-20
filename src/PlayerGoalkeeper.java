@@ -1,5 +1,4 @@
 
-
 import java.util.ArrayList;
 
 
@@ -31,15 +30,13 @@ public class PlayerGoalkeeper extends Thread{
 	
 	public PlayerGoalkeeper(PlayerCommander player) {
 		commander = player;
-<<<<<<< HEAD
-		homebase = new Vector2D(-52.4d, 0.0d);
+
+		homebase = new Vector2D(52.4d, 0.0d);
 		//selfInfo.setGoalie(true);
-=======
 		homebase = new Vector2D(52.4d, 0.0d);
 		//selfInfo.setGoalie(true);
 		home_left = new Vector2D(52.4d, 4.5d);
 		home_right = new Vector2D(52.4d, -4.5d);
->>>>>>> branch 'master' of https://github.com/CesarMarinho/timeFutebol.git
 	}
 	
 	@Override
