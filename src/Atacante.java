@@ -106,7 +106,9 @@ private static final double ERROR_RADIUS = 1.0d;
 	////// Estado RETURN_TO_HOME_BASE ///////
 	
 	private void stateReturnToHomeBase() {
-		if (closerToTheBall()) {
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		
+		if (ballPosition.getX() > 0) {
 			state = State.ATTACKING;
 			return;
 		}
@@ -120,8 +122,11 @@ private static final double ERROR_RADIUS = 1.0d;
 				turnTo(homebase);
 			}			
 		}
-		state = State.WAITING;
-		return;		
+		else{
+			state = State.WAITING;
+			return;	
+		}
+			
 	}
 
 	private boolean closerToTheBall() {
@@ -178,16 +183,20 @@ private static final double ERROR_RADIUS = 1.0d;
 	/////// Estado ATTACKING ///////	
 	
 	private void stateAttacking() {
-		if (! closerToTheBall()) {
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		Vector2D playerPosition = selfInfo.getPosition();
+		
+		if (ballPosition.getX() < 0) {
 			state = State.RETURN_TO_HOME;
 			return;
-		}
-
-		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		}		
 		
 		if (arrivedAt(ballPosition)) {
-			
 			commander.doTurnToPointBlocking(new Vector2D(52.0, 0.0));
+			if(playerPosition.getX() >= 26){
+				commander.doKickBlocking(100, 0);
+			}
+			
 			commander.doKickBlocking(15, 0);
 			
 		} else {

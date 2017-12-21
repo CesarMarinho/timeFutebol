@@ -33,7 +33,6 @@ private static final double ERROR_RADIUS = 2.0d;
 	public void run() {
 		_printf("Waiting initial perceptions...");
 		selfInfo  = commander.perceiveSelfBlocking();
-		System.out.println(">>>>>>>>>>>>>"+selfInfo.getUniformNumber());
 		fieldInfo = commander.perceiveFieldBlocking();
 		matchInfo = commander.perceiveMatchBlocking();
 		
@@ -102,7 +101,7 @@ private static final double ERROR_RADIUS = 2.0d;
 
 		Vector2D playerPosition = selfInfo.getPosition();
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		if(!closerToTheBall()){
+		if(!isMySide()){
 			state = State.RETURN_TO_HOME;
 			return;
 		}
@@ -127,7 +126,7 @@ private static final double ERROR_RADIUS = 2.0d;
 	private void stateWaiting(){
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		//Vector2D playerPosition = selfInfo.getPosition();
-		_printf("Entrou no waiting");
+		///_printf("Entrou no waiting");
 		if(ballPosition.getX() <= 0){
 			state = State.BLOCKING;
 			return;
@@ -160,10 +159,10 @@ private static final double ERROR_RADIUS = 2.0d;
 		}
 		if (! arrivedAt(homebase)) {			
 			if (isAlignedTo(homebase)) {
-				_printf("RTHB: Running to the base...");
+				//_printf("RTHB: Running to the base...");
 				commander.doDashBlocking(100.0d);		
 			} else {
-				_printf("RTHB: Turning...");
+				//_printf("RTHB: Turning...");
 				turnTo(homebase);
 			}			
 		}else{
@@ -233,20 +232,18 @@ private static final double ERROR_RADIUS = 2.0d;
 		}
 		
 		if (arrivedAt(ballPosition)) {			
-			//commander.doKickToPointBlocking(100, new Vector2D(52.0, 0.0));
-			commander.doKickToPointBlocking(100, fieldInfo.getTeamPlayer(selfInfo.getSide(), 4).getPosition());
+			commander.doKickToPointBlocking(100, new Vector2D(52.0, 0.0));
 			state = State.RETURN_TO_HOME;
 		} else {
 			if (isAlignedTo(ballPosition)) {
 				_printf("ATK: Running to the ball...");
 				commander.doDashBlocking(100.0d);				
-				
 			} else {
 				_printf("ATK: Turning...");
 				turnTo(ballPosition);
 			}
 		}		
-	}	
+	}
 
 	//for debugging
 	public void _printf(String format, Object...objects) {
