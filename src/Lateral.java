@@ -131,7 +131,6 @@ public class Lateral extends Thread {
 			}
 		}
 		
-		
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
 		
