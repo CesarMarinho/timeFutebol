@@ -1,7 +1,5 @@
 //import java.util.ArrayList;
 
-import java.util.ArrayList;
-
 import simple_soccer_lib.PlayerCommander;
 import simple_soccer_lib.perception.FieldPerception;
 import simple_soccer_lib.perception.MatchPerception;
@@ -55,7 +53,7 @@ private static final double ERROR_RADIUS = 2.0d;
 		
 		while (commander.isActive()) {
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
-			_printf(""+selfInfo.getState());
+			_printf(state.toString());
 			
 			if (matchInfo.getState() == EMatchState.PLAY_ON) {
 			
@@ -271,5 +269,6 @@ private static final double ERROR_RADIUS = 2.0d;
 			teamPlayer += "[" + selfInfo.getTeam() + "/" + selfInfo.getUniformNumber() + "] ";
 		}
 		System.out.printf(teamPlayer + format + "%n", objects);
-	}
+	}	
+	
 }
