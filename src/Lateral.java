@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 
-import javax.management.monitor.CounterMonitorMBean;
-
 import simple_soccer_lib.PlayerCommander;
 import simple_soccer_lib.perception.FieldPerception;
 import simple_soccer_lib.perception.MatchPerception;
@@ -13,7 +11,7 @@ import simple_soccer_lib.utils.Vector2D;
 public class Lateral extends Thread {
 	private static final double ERROR_RADIUS = 2.0d;
 	
-	private enum State { ATTACKING, RETURN_TO_HOME, BLOCKING };
+	private enum State { ATTACKING, RETURN_TO_HOME };
 
 	private PlayerCommander commander;
 	private State state;
@@ -64,9 +62,6 @@ public class Lateral extends Thread {
 				case RETURN_TO_HOME:
 					stateReturnToHomeBase();
 					break;
-				case BLOCKING:
-					stateBlocking();
-					break;
 				default:
 					_printf("Invalid state: %s", state);
 					break;	
@@ -95,9 +90,7 @@ public class Lateral extends Thread {
 	}
 
 	////// Estado RETURN_TO_HOME_BASE ///////
-	private void stateBlocking(){
-		
-	}
+	
 	private void stateReturnToHomeBase() {
 //		if (closerToTheBall()) {
 //			state = State.ATTACKING;
@@ -114,7 +107,8 @@ public class Lateral extends Thread {
 			}			
 		}else{
 			commander.doTurn(30);
-		}		
+		}
+		
 	}
 
 	private boolean closerToTheBall() {
@@ -124,13 +118,6 @@ public class Lateral extends Thread {
 		double auxA, auxB;
 		
 		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
-
-		for(PlayerPerception jogador : players){
-			if(jogador.isGoalie()){
-				players.remove(jogador);
-			}
-		}
-		
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
 		
@@ -184,22 +171,14 @@ public class Lateral extends Thread {
 		}
 
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		Vector2D playerPosition = selfInfo.getPosition();
 		
 		if (arrivedAt(ballPosition)) {
-			if(playerPosition.getX() >= 26){
-				commander.doTurnToPointBlocking(new Vector2D(52.0, 0.0));
-				commander.doKickBlocking(100, 0);
-			}
-			else{
-				commander.doKickToPointBlocking(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), 4).getPosition()));
-			}
-		}
-		else if(!arrivedAt(ballPosition)){
-			commander.doTurnToPointBlocking(ballPosition);
-			commander.doDash(100.d);
-		}
-		else {
+			//commander.doKick(100.0d, 0);
+			//commander.doTurnToPoint(new Vector2D(52.0, 0.0));
+			commander.doKickToPoint(100, new Vector2D(52.0, 0.0));
+			//TODO: chutar em direção ao gol adversário
+			
+		} else {
 			if (isAlignedTo(ballPosition)) {
 				_printf("ATK: Running to the ball...");
 				commander.doDashBlocking(100.0d);
