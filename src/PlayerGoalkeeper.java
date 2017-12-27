@@ -39,6 +39,7 @@ public class PlayerGoalkeeper extends Thread{
 		fieldInfo = commander.perceiveFieldBlocking();
 		matchInfo = commander.perceiveMatchBlocking();
 		
+		
 		state = State.RETURN_TO_HOME; //todos começam neste estado
 		if (selfInfo.getSide() == EFieldSide.RIGHT) { //ajusta a posição base de acordo com o lado do jogador (basta mudar o sinal do x)
 			homebase.setX(- homebase.getX());
