@@ -55,6 +55,7 @@ private static final double ERROR_RADIUS = 2.0d;
 		
 		while (commander.isActive()) {
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
+			_printf(""+selfInfo.getState());
 			
 			if (matchInfo.getState() == EMatchState.PLAY_ON) {
 			
