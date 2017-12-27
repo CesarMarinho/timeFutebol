@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 0,18	Recv Pa_1: (init Pa (version 9))
 0,18	Recv Pa_2: (init Pa (version 9))
 0,18	Recv Pa_3: (init Pa (version 9))
@@ -852,3 +853,7 @@
 161,0	Recv Pa_3: (turn 24.28117352737767)
 161,0	Recv Pa_4: (dash 100.0)
 161,31	(referee free_kick_r)
+=======
+0,16	Recv Pa_1: (init Pa (version 9))
+0,1526	Recv Pa_2: (init Pa (version 9))
+>>>>>>> branch 'master' of https://github.com/CesarMarinho/timeFutebol.git
