@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+//import java.util.ArrayList;
 
 import simple_soccer_lib.PlayerCommander;
 import simple_soccer_lib.perception.FieldPerception;
@@ -129,33 +129,33 @@ private static final double ERROR_RADIUS = 1.0d;
 			
 	}
 
-	private boolean closerToTheBall() {
-				
-		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
-		int distanceIndex=0;
-		double auxA, auxB;
-		
-		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
-		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
-		
-		for(int i=0;i<players.size();i++){
-			auxB = pointDistance(players.get(i).getPosition(), ballPosition);
-			if(auxA > auxB){
-				distanceIndex = i;
-			}
-		}
-		
-		distanceIndex++;
-		//System.out.println(">>>>>>>>>>"+distanceIndex);
-		return selfInfo.getUniformNumber() == distanceIndex;  
-	}
+//	private boolean closerToTheBall() {
+//				
+//		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
+//		int distanceIndex=0;
+//		double auxA, auxB;
+//		
+//		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
+//		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+//		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
+//		
+//		for(int i=0;i<players.size();i++){
+//			auxB = pointDistance(players.get(i).getPosition(), ballPosition);
+//			if(auxA > auxB){
+//				distanceIndex = i;
+//			}
+//		}
+//		
+//		distanceIndex++;
+//		//System.out.println(">>>>>>>>>>"+distanceIndex);
+//		return selfInfo.getUniformNumber() == distanceIndex;  
+//	}
 	
-	private double pointDistance(Vector2D player, Vector2D ball){
-		double termX = player.getX() - ball.getX();
-		double termY = player.getY() - ball.getY();
-		return Math.sqrt((termX*termX)+(termY*termY));
-	}
+//	private double pointDistance(Vector2D player, Vector2D ball){
+//		double termX = player.getX() - ball.getX();
+//		double termY = player.getY() - ball.getY();
+//		return Math.sqrt((termX*termX)+(termY*termY));
+//	}
 	
 	private boolean arrivedAt(Vector2D targetPosition) {
 		Vector2D myPos = selfInfo.getPosition();
