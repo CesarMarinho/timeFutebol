@@ -1,4 +1,5 @@
 
+
 import java.util.ArrayList;
 
 
@@ -14,7 +15,7 @@ public class PlayerGoalkeeper extends Thread{
 	
 	private static final double ERROR_RADIUS = 2.0d;
 	
-	private enum State { RECEIVED_PASSING, WAITING, RETURN_TO_HOME, ATTACKING };
+	private enum State {RETURN_TO_HOME, BLOCKING};
 
 	private PlayerCommander commander;
 	private State state;
@@ -30,13 +31,10 @@ public class PlayerGoalkeeper extends Thread{
 	
 	public PlayerGoalkeeper(PlayerCommander player) {
 		commander = player;
-
-		homebase = new Vector2D(52.4d, 0.0d);
+		homebase = new Vector2D(-52.0d, 0.0d);
 		//selfInfo.setGoalie(true);
-		homebase = new Vector2D(52.4d, 0.0d);
-		//selfInfo.setGoalie(true);
-		home_left = new Vector2D(52.4d, 4.5d);
-		home_right = new Vector2D(52.4d, -4.5d);
+		home_left = new Vector2D(-52.4d, 4.5d);
+		home_right = new Vector2D(-52.4d, -4.5d);
 	}
 	
 	@Override
@@ -47,12 +45,12 @@ public class PlayerGoalkeeper extends Thread{
 		matchInfo = commander.perceiveMatchBlocking();
 		
 		state = State.RETURN_TO_HOME; //todos começam neste estado
-		if (selfInfo.getSide() == EFieldSide.LEFT) { //ajusta a posição base de acordo com o lado do jogador (basta mudar o sinal do x)
+		if (selfInfo.getSide() == EFieldSide.RIGHT) { //ajusta a posição base de acordo com o lado do jogador (basta mudar o sinal do x)
 			homebase.setX(- homebase.getX());
 		}
 		
 		commander.doMoveBlocking(homebase.getX(), homebase.getY());
-		
+		commander.doTurnToPoint(new Vector2D(0,0));
 		
 		try {
 			Thread.sleep(5000); // espera, para dar tempo de ver as mensagens iniciais
@@ -65,14 +63,11 @@ public class PlayerGoalkeeper extends Thread{
 			if (matchInfo.getState() == EMatchState.PLAY_ON) {
 			
 				switch (state) {
-				case RETURN_TO_HOME:
+				case RETURN_TO_HOME :
 					stateRETURN_TO_HOME();
 					break;
-				case WAITING:
-					stateWAITING();
-					break;
-				case ATTACKING:
-					stateATTACKING();
+				case BLOCKING :
+					stateBLOCKING();
 					break;
 				default:
 					_printf("Invalid state: %s", state);
@@ -83,52 +78,63 @@ public class PlayerGoalkeeper extends Thread{
 		}
 	}
 	
-	private void stateATTACKING() {
+	private void stateRETURN_TO_HOME() {
 		// TODO Auto-generated method stub
-		if(fieldInfo.getBall().getPosition().getX()  < 0){
-			state = State.RETURN_TO_HOME;
+		Vector2D ball = fieldInfo.getBall().getPosition();
+		Double ballPosX = ball.getX();
+		Double ballPosY = ball.getY();
+		
+		if(ballPosY > 14){
+			max_attack = new Vector2D(homebase.getX(), 4.0d);
 		}
-	}
-
-	private void stateWAITING() {
-		// TODO Auto-generated method stub
-		if(fieldInfo.getBall().getPosition().getY() > 14){
-			max_attack = new Vector2D(selfInfo.getPosition().getX(), 4.0d);
-		}
-		else if(fieldInfo.getBall().getPosition().getY() < -14){
-			max_attack = new Vector2D(selfInfo.getPosition().getX(), -4.0d);
+		else if(ballPosY < -14){
+			max_attack = new Vector2D(homebase.getX(), -4.0d);
 		}
 		else{
 			max_attack = homebase;
 		}
 		
-		if(fieldInfo.getBall().getPosition().getX() > 0){
+		if(!arrivedAt(max_attack)){
+			commander.doTurnToPoint(max_attack);
+			System.out.println(max_attack);
+			commander.doDash(30.0d);
+		}
+		
+		commander.doDash(0d);
+		commander.doTurnToPoint(new Vector2D(0,0));
+		/*if(ballPosX > 0){
 			max_attack = new Vector2D(-42.0d, selfInfo.getPosition().getY());
-		}
-		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		if (arrivedAt(ballPosition)) {
-			commander.doCatch(0);
-		}
+			commander.doTurnToPoint(max_attack);
+			commander.doDash(30.0d);
+		}*/
+		
+		//state = State.BLOCKING;
 	}
 
-	private void stateRETURN_TO_HOME() {
+	private void stateBLOCKING() {
 		// TODO Auto-generated method stub
-		if (closerToTheBall()) {
-			state = State.WAITING;
-			return;
+		
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		
+		commander.doTurnToDirection(ballPosition);
+		if(limitarMovimento() == 0){
+			if(arrivedAt(ballPosition)){
+				commander.doCatch(0);
+				}
+			else{
+				commander.doDash(50.0d);
+			}
+		}
+		else if(limitarMovimento() == 1){
+			if(arrivedAt(ballPosition)){
+				commander.doKickToDirection(100.0d, new Vector2D(0,0));
+			}
+		}
+		else{
+			state = State.RETURN_TO_HOME;
+		}
 		}
 		
-		if (! arrivedAt(homebase)) {			
-			if (isAlignedTo(homebase)) {
-				_printf("RTHB: Running to the base...");
-				commander.doDashBlocking(100.0d);			
-			} else {
-				_printf("RTHB: Turning...");
-				turnTo(homebase);
-			}			
-		}
-		
-	}
 
 	private boolean arrivedAt(Vector2D targetPosition) {
 		Vector2D myPos = selfInfo.getPosition();
@@ -174,6 +180,20 @@ public class PlayerGoalkeeper extends Thread{
 		return selfInfo.getUniformNumber() == distanceIndex;  
 	}
 	
+	public int limitarMovimento(){
+		Vector2D ballPos = fieldInfo.getBall().getPosition();
+		Double x = ballPos.getX();
+		Double y = ballPos.getY();
+		if(x > -52 && x < -36 && y > -20 && y < 20){
+			return 0;
+		}
+		else if(closerToTheBall()){
+			return 1;
+		}
+		else{
+			return 2;
+		}
+	}
 	
 	private void turnTo(Vector2D targetPosition) {
 		Vector2D myPos = selfInfo.getPosition();		
