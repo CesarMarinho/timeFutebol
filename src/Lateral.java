@@ -94,7 +94,7 @@ public class Lateral extends Thread {
 
 	////// Estado RETURN_TO_HOME_BASE ///////
 	private void stateBlocking(){
-		
+		state = State.RETURN_TO_HOME;
 	}
 	private void stateReturnToHomeBase() {
 		if (closerToTheBall()) {
@@ -121,11 +121,11 @@ public class Lateral extends Thread {
 		
 		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
 
-		for(PlayerPerception jogador : players){
+		/*for(PlayerPerception jogador : players){
 			if(jogador.isGoalie()){
 				players.remove(jogador);
 			}
-		}
+		}*/
 		
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
