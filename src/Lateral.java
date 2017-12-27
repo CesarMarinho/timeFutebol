@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 
-import javax.management.monitor.CounterMonitorMBean;
-
 import simple_soccer_lib.PlayerCommander;
 import simple_soccer_lib.perception.FieldPerception;
 import simple_soccer_lib.perception.MatchPerception;
@@ -99,10 +97,10 @@ public class Lateral extends Thread {
 		
 	}
 	private void stateReturnToHomeBase() {
-//		if (closerToTheBall()) {
-//			state = State.ATTACKING;
-//			return;
-//		}
+		if (closerToTheBall()) {
+			state = State.ATTACKING;
+			return;
+		}
 				
 		if (! arrivedAt(homebase)) {			
 			if (isAlignedTo(homebase)) {
@@ -112,9 +110,7 @@ public class Lateral extends Thread {
 				_printf("RTHB: Turning...");
 				turnTo(homebase);
 			}			
-		}else{
-			commander.doTurn(30);
-		}		
+		}	
 	}
 
 	private boolean closerToTheBall() {
