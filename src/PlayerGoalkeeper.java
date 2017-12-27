@@ -24,16 +24,12 @@ public class PlayerGoalkeeper extends Thread{
 	private MatchPerception  matchInfo;
 	
 	private Vector2D homebase; //centro do gol
-	private Vector2D home_left; //mais a esquerda
-	private Vector2D home_right; //mais a direita
-	private Vector2D max_attack; //posição mais adiantada do goleiro
 	
 	public PlayerGoalkeeper(PlayerCommander player) {
 		commander = player;
 		homebase = new Vector2D(-52.0d, 0.0d);
-		//selfInfo.setGoalie(true);
-		home_left = new Vector2D(-52.4d, 4.5d);
-		home_right = new Vector2D(-52.4d, -4.5d);
+		selfInfo.setGoalie(true);
+
 	}
 	
 	@Override
@@ -97,32 +93,6 @@ public class PlayerGoalkeeper extends Thread{
 		}
 		
 		commander.doTurnToPoint(ball);
-		/*
-		if(ballPosY > 14){
-			max_attack = new Vector2D(homebase.getX(), 4.0d);
-		}
-		else if(ballPosY < -14){
-			max_attack = new Vector2D(homebase.getX(), -4.0d);
-		}
-		else{
-			max_attack = homebase;
-		}
-		
-		if(!arrivedAt(max_attack)){
-			commander.doTurnToPoint(max_attack);
-			System.out.println(max_attack);
-			commander.doDash(50.0d);
-		}*/
-		
-
-		
-		/*if(ballPosX > 0){
-			max_attack = new Vector2D(-42.0d, selfInfo.getPosition().getY());
-			commander.doTurnToPoint(max_attack);
-			commander.doDash(30.0d);
-		}*/
-		
-		//state = State.BLOCKING;
 	}
 
 	private void stateBLOCKING() {
@@ -228,4 +198,13 @@ public class PlayerGoalkeeper extends Thread{
 		}
 		System.out.printf(teamPlayer + format + "%n", objects);
 	}
+
+	public PlayerPerception getSelfInfo() {
+		return selfInfo;
+	}
+
+	public void setSelfInfo(PlayerPerception selfInfo) {
+		this.selfInfo = selfInfo;
+	}
+	
 }
