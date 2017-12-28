@@ -1,5 +1,7 @@
 //import java.util.ArrayList;
 
+import java.util.ArrayList;
+
 import simple_soccer_lib.PlayerCommander;
 import simple_soccer_lib.perception.FieldPerception;
 import simple_soccer_lib.perception.MatchPerception;
@@ -22,12 +24,50 @@ private static final double ERROR_RADIUS = 2.0d;
 	
 	private Vector2D homebase; //posição base do jogador
 	
+	//private String classe = "Zagueiro"
+	
+	
 	//private boolean flagAlign=true;
 	
 	public Zagueiro(PlayerCommander player, double x, double y) {
 		commander = player;
 		homebase = new Vector2D(x, y);
 	}
+	
+	/*private void getNumeroCamisa(){
+		ArrayList <PlayerPerception> players = new ArrayList<PlayerPerception>(); 
+		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
+//		for(int i=0;i<jogadores.length;i++){
+//			jogadores[i]=0;
+//		}
+//		System.out.println(">>>>>>>>>>.Entrou no def do vetor");
+		for(PlayerPerception p:players){
+			System.out.println(">>>>>>>>>>>>>>...Entrou aqui");
+			if(p.getClass().equals(PlayerGoalkeeper.class)){
+				jogadores[0] = p.getUniformNumber();
+			}else if(p.getClass().equals(Zagueiro.class)){
+				if(jogadores[1]==0){
+					jogadores[1] = p.getUniformNumber();
+				}else{
+					jogadores[2] = p.getUniformNumber();
+				}
+			}else if(p.getClass().equals(Atacante.class)){
+				jogadores[3] = p.getUniformNumber();
+			}else if(p.getClass().equals(Lateral.class)){
+				if(jogadores[4]==0){
+					jogadores[4] = p.getUniformNumber();
+				}else{
+					jogadores[5] = p.getUniformNumber();
+				}
+			}
+		}
+		
+		for(int i=0;i<6;i++){
+			System.out.print(jogadores[i]+" ");
+		}		
+		
+		flag = false;
+	}*/
 	
 	@Override
 	public void run() {
@@ -53,7 +93,8 @@ private static final double ERROR_RADIUS = 2.0d;
 		
 		while (commander.isActive()) {
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
-			_printf(state.toString());
+			//_printf(state.toString());
+			//if(flag) getNumeroCamisa();
 			
 			if (matchInfo.getState() == EMatchState.PLAY_ON) {
 			
@@ -249,6 +290,7 @@ private static final double ERROR_RADIUS = 2.0d;
 		}
 		
 		if (arrivedAt(ballPosition)) {			
+			//commander.doKickToPointBlocking(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), 4).getPosition()));
 			commander.doKickToPointBlocking(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), 4).getPosition()));
 			state = State.RETURN_TO_HOME;
 		} else {
