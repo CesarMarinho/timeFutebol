@@ -53,8 +53,7 @@ public class Lateral extends Thread {
 		while (commander.isActive()) {
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
 			
-			if (matchInfo.getState() == EMatchState.PLAY_ON) {
-			
+			if (matchInfo.getState() == EMatchState.PLAY_ON) {			
 				switch (state) {
 				case ATTACKING:
 					stateAttacking();
@@ -62,17 +61,12 @@ public class Lateral extends Thread {
 				case RETURN_TO_HOME:
 					stateReturnToHomeBase();
 					break;
-				case BLOCKING:
-					stateBlocking();
-					break;
 				default:
 					_printf("Invalid state: %s", state);
 					break;	
-				}
-				
+				}			
 			}
-		}
-			
+		}			
 	}
 	
 	private void updatePerceptions() {
@@ -92,10 +86,6 @@ public class Lateral extends Thread {
 		}
 	}
 
-	////// Estado RETURN_TO_HOME_BASE ///////
-	private void stateBlocking(){
-		state = State.RETURN_TO_HOME;
-	}
 	private void stateReturnToHomeBase() {
 		if (closerToTheBall()) {
 			state = State.ATTACKING;
@@ -105,7 +95,7 @@ public class Lateral extends Thread {
 		if (! arrivedAt(homebase)) {			
 			if (isAlignedTo(homebase)) {
 				_printf("RTHB: Running to the base...");
-				commander.doDashBlocking(100.0d);			
+				commander.doDash(100.0d);			
 			} else {
 				_printf("RTHB: Turning...");
 				turnTo(homebase);
@@ -113,19 +103,17 @@ public class Lateral extends Thread {
 		}	
 	}
 
-	private boolean closerToTheBall() {
-				
+	private boolean closerToTheBall() {				
 		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
 		int distanceIndex=0;
 		double auxA, auxB;
 		
 		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
 
-		/*for(PlayerPerception jogador : players){
-			if(jogador.isGoalie()){
-				players.remove(jogador);
-			}
-		}*/
+		for(PlayerPerception jogador : players){
+			if(jogador.getClass().equals(PlayerGoalkeeper.class)){
+				players.remove(jogador);			}
+		}
 		
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
@@ -174,7 +162,7 @@ public class Lateral extends Thread {
 	/////// Estado ATTACKING ///////	
 	
 	private void stateAttacking() {
-		if (! closerToTheBall()) {
+		if (!closerToTheBall()) {
 			state = State.RETURN_TO_HOME;
 			return;
 		}
@@ -183,19 +171,19 @@ public class Lateral extends Thread {
 		Vector2D playerPosition = selfInfo.getPosition();
 		
 		if (arrivedAt(ballPosition)) {
+			commander.doTurnToPoint(new Vector2D(52.0, 0.0));
 			if(playerPosition.getX() >= 26){
-				commander.doTurnToPointBlocking(new Vector2D(52.0, 0.0));
-				commander.doKickBlocking(100, 0);
+				commander.doKick(100, 0);
 			}
 			else{
-				commander.doKickToPointBlocking(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), 4).getPosition()));
+				commander.doKickToPoint(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), 4).getPosition()));
 			}
 		}
-		else if(!arrivedAt(ballPosition)){
-			commander.doTurnToPointBlocking(ballPosition);
+		else{
+			commander.doTurnToPoint(ballPosition);
 			commander.doDash(100.d);
 		}
-		else {
+		/*else {
 			if (isAlignedTo(ballPosition)) {
 				_printf("ATK: Running to the ball...");
 				commander.doDashBlocking(100.0d);
@@ -203,7 +191,7 @@ public class Lateral extends Thread {
 				_printf("ATK: Turning...");
 				turnTo(ballPosition);
 			}
-		}		
+		}*/		
 	}
 
 	//for debugging
