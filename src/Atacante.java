@@ -37,12 +37,15 @@ private static final double ERROR_RADIUS = 1.0d;
 		
 		state = State.RETURN_TO_HOME; //todos começam neste estado
 		
-		_printf("Starting in a random position...");
-		commander.doMoveBlocking(Math.random() * (selfInfo.getSide() == EFieldSide.LEFT ? -52.0 : 52.0), (Math.random() * 68.0) - 34.0);
+		
+		//_printf("Starting in a random position...");
+		//commander.doMoveBlocking(Math.random() * (selfInfo.getSide() == EFieldSide.LEFT ? -52.0 : 52.0), (Math.random() * 68.0) - 34.0);
  
 		if (selfInfo.getSide() == EFieldSide.RIGHT) { //ajusta a posição base de acordo com o lado do jogador (basta mudar o sinal do x)
 			homebase.setX(- homebase.getX());
 		}
+		
+		commander.doMoveBlocking(homebase.getX(), homebase.getY());
 		
 		try {
 			Thread.sleep(5000); // espera, para dar tempo de ver as mensagens iniciais

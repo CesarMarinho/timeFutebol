@@ -24,13 +24,13 @@ public class Team extends AbstractTeam {
 			Zagueiro p = new Zagueiro(commander, -25, 20);
 			p.start();
 		}else if(ag==3){
-			Atacante a = new Atacante(commander, 10, 0);
+			Atacante a = new Atacante(commander, -10, 0);
 			a.start();
 		}else if(ag==4){
-			Lateral l = new Lateral(commander, 5, 28);
+			Lateral l = new Lateral(commander, -5, 28);
 			l.start();
 		}else if(ag==5){
-			Lateral l = new Lateral(commander, 5, -28);
+			Lateral l = new Lateral(commander, -5, -28);
 			l.start();
 		}
 	}
