@@ -112,7 +112,8 @@ public class Lateral extends Thread {
 
 		for(PlayerPerception jogador : players){
 			if(jogador.getClass().equals(PlayerGoalkeeper.class)){
-				players.remove(jogador);			}
+				players.remove(jogador);
+			}
 		}
 		
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
