@@ -76,6 +76,8 @@ private static final double ERROR_RADIUS = 2.0d;
 		fieldInfo = commander.perceiveFieldBlocking();
 		matchInfo = commander.perceiveMatchBlocking();
 		
+		
+
 		state = State.RETURN_TO_HOME; //todos começam neste estado
 		
 		_printf("Starting in a random position...");
