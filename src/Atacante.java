@@ -31,7 +31,7 @@ private static final double ERROR_RADIUS = 1.0d;
 	public void run() {
 		_printf("Waiting initial perceptions...");
 		selfInfo  = commander.perceiveSelfBlocking();
-		System.out.println(">>>>>>>>>>>>>"+selfInfo.getUniformNumber());
+		//System.out.println(">>>>>>>>>>>>>"+selfInfo.getUniformNumber());
 		fieldInfo = commander.perceiveFieldBlocking();
 		matchInfo = commander.perceiveMatchBlocking();
 		
@@ -118,10 +118,10 @@ private static final double ERROR_RADIUS = 1.0d;
 		
 		if (! arrivedAt(homebase)) {			
 			if (isAlignedTo(homebase)) {
-				_printf("RTHB: Running to the base...");
+				//_printf("RTHB: Running to the base...");
 				commander.doDashBlocking(100.0d);			
 			} else {
-				_printf("RTHB: Turning...");
+				//_printf("RTHB: Turning...");
 				turnTo(homebase);
 			}			
 		}
@@ -189,7 +189,7 @@ private static final double ERROR_RADIUS = 1.0d;
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		Vector2D playerPosition = selfInfo.getPosition();
 		
-		if (ballPosition.getX() < 0) {
+		if (ballPosition.getX() < -15) {
 			state = State.RETURN_TO_HOME;
 			return;
 		}		
@@ -204,10 +204,10 @@ private static final double ERROR_RADIUS = 1.0d;
 			
 		} else {
 			if (isAlignedTo(ballPosition)) {
-				_printf("ATK: Running to the ball...");
+				//_printf("ATK: Running to the ball...");
 				commander.doDashBlocking(100.0d);
 			} else {
-				_printf("ATK: Turning...");
+				//_printf("ATK: Turning...");
 				turnTo(ballPosition);
 			}
 		}		

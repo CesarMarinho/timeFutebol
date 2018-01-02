@@ -89,10 +89,10 @@ public class PlayerGoalkeeper extends Thread{
 		
 		if (! arrivedAt(homebase)) {			
 			if (isAlignedTo(homebase)) {
-				_printf("RTHB: Running to the base...");
+				//_printf("RTHB: Running to the base...");
 				commander.doDashBlocking(100.0d);			
 			} else {
-				_printf("RTHB: Turning...");
+				//_printf("RTHB: Turning...");
 				turnTo(homebase);
 			}			
 		}
