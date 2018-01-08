@@ -1,5 +1,7 @@
 //import java.util.ArrayList;
 
+import java.util.ArrayList;
+
 import simple_soccer_lib.PlayerCommander;
 import simple_soccer_lib.perception.FieldPerception;
 import simple_soccer_lib.perception.MatchPerception;
@@ -11,7 +13,7 @@ import simple_soccer_lib.utils.Vector2D;
 public class Atacante extends Thread{
 private static final double ERROR_RADIUS = 1.0d;
 	
-	private enum State { ATTACKING, RETURN_TO_HOME, WAITING };
+	private enum State { ATTACKING, RETURN_TO_HOME, WAITING, KICKOFF};
 
 	private PlayerCommander commander;
 	private State state;
@@ -22,9 +24,13 @@ private static final double ERROR_RADIUS = 1.0d;
 	
 	private Vector2D homebase; //posição base do jogador
 	
+	private int[] numerosCamisa = {0,0,0,0,0,0};
+	private boolean flag;
+	
 	public Atacante(PlayerCommander player, double x, double y) {
 		commander = player;
 		homebase = new Vector2D(x, y);
+		flag = true;
 	}
 	
 	@Override
@@ -56,8 +62,9 @@ private static final double ERROR_RADIUS = 1.0d;
 		while (commander.isActive()) {
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
 			
-			if (matchInfo.getState() == EMatchState.PLAY_ON) {
+			if(flag && matchInfo.getState() == EMatchState.PLAY_ON) getCamisa();
 			
+			if (matchInfo.getState() == EMatchState.PLAY_ON) {				
 				switch (state) {
 				case ATTACKING:
 					stateAttacking();
@@ -68,11 +75,17 @@ private static final double ERROR_RADIUS = 1.0d;
 				case WAITING:
 					stateWaiting();
 					break;
+				case KICKOFF:
+					stateKickoff();
+					break;
 				default:
 					_printf("Invalid state: %s", state);
 					break;	
-				}
-				
+				}				
+			}else if(matchInfo.getState() == EMatchState.KICK_OFF_LEFT){				
+				//state = State.KICKOFF;
+				stateKickoff();
+				//return;
 			}
 		}
 			
@@ -93,6 +106,59 @@ private static final double ERROR_RADIUS = 1.0d;
 		if (newMatch != null) {
 			this.matchInfo = newMatch;
 		}
+	}
+	
+	private void getCamisa(){
+		flag = false;
+		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
+		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
+				
+		for(PlayerPerception p:players){
+			if(arrivedAtAt(new Vector2D(-52,0), p.getPosition())){				
+				numerosCamisa[0] = p.getUniformNumber();				
+			}else if(arrivedAtAt(new Vector2D(-25,20), p.getPosition())){				
+				numerosCamisa[1] = p.getUniformNumber();
+			}else if(arrivedAtAt(new Vector2D(-25,-20), p.getPosition())){				
+				numerosCamisa[2] = p.getUniformNumber();				
+			}else if(arrivedAtAt(new Vector2D(-10,0), p.getPosition())){				
+				numerosCamisa[3] = p.getUniformNumber();				
+			}else if(arrivedAtAt(new Vector2D(-5,28), p.getPosition())){				
+				numerosCamisa[4] = p.getUniformNumber();
+			}else if(arrivedAtAt(new Vector2D(-5,-28), p.getPosition())){				
+				numerosCamisa[5] = p.getUniformNumber();		
+			}else{
+				System.out.println("astofo");
+			}
+			
+		}
+	}
+	
+	private boolean arrivedAtAt(Vector2D targetPosition, Vector2D agentPosition) {
+		//Vector2D myPos = selfInfo.getPosition();
+		return Vector2D.distance(agentPosition, targetPosition) <= ERROR_RADIUS+3;
+	}
+	
+	/////// Estado kickoff ///////
+	private void stateKickoff(){
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		//Vector2D playerPosition = selfInfo.getPosition();
+		//Vector2D lateralPosition
+		//System.out.println("<><><><><><><><><><><><><><><><><><><><><><");
+		Vector2D point = new Vector2D(52,0);
+		
+		if (arrivedAt(ballPosition)) {
+			//commander.doKickToPoint(80, fieldInfo.getTeamPlayer(selfInfo.getSide(), numerosCamisa[4]).getPosition());
+			commander.doKickToPoint(100, point);
+			state = State.ATTACKING;			
+		} else {
+			if (isAlignedTo(ballPosition)) {
+				//_printf("ATK: Running to the ball...");
+				commander.doDashBlocking(100.0d);
+			} else {
+				//_printf("ATK: Turning...");
+				turnTo(ballPosition);
+			}
+		}		
 	}
 	
 	/////// Estado WAITING ///////

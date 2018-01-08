@@ -11,7 +11,7 @@ import simple_soccer_lib.utils.Vector2D;
 public class Lateral extends Thread {
 	private static final double ERROR_RADIUS = 1.0d;
 	
-	private enum State { ATTACKING, RETURN_TO_HOME, BLOCKING };
+	private enum State { ATTACKING, RETURN_TO_HOME, BLOCKING, WAITING, CORN_KICK };
 
 	private PlayerCommander commander;
 	private State state;
@@ -21,6 +21,7 @@ public class Lateral extends Thread {
 	private MatchPerception  matchInfo;
 	
 	private Vector2D homebase; //posição base do jogador
+	//private Vector2D attackHomeBase;
 	
 	private int[] numerosCamisa = {0,0,0,0,0,0};	
 	private boolean flag;
@@ -29,6 +30,7 @@ public class Lateral extends Thread {
 		commander = player;
 		homebase = new Vector2D(x, y);
 		flag = true;
+		//attackHomeBase = new Vector2D();
 	}
 	
 	private void getCamisa(){
@@ -58,7 +60,7 @@ public class Lateral extends Thread {
 		
 	private boolean arrivedAtAt(Vector2D targetPosition, Vector2D agentPosition) {
 		//Vector2D myPos = selfInfo.getPosition();
-		return Vector2D.distance(agentPosition, targetPosition) <= ERROR_RADIUS;
+		return Vector2D.distance(agentPosition, targetPosition) <= ERROR_RADIUS+3;
 	}
 	
 	@Override
@@ -87,7 +89,7 @@ public class Lateral extends Thread {
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
 			if(flag && matchInfo.getState() == EMatchState.PLAY_ON) getCamisa();
 			
-			_printf(" "+state);
+			//_printf(" "+state);
 			
 			if (matchInfo.getState() == EMatchState.PLAY_ON) {			
 				switch (state) {
@@ -104,6 +106,9 @@ public class Lateral extends Thread {
 					_printf("Invalid state: %s", state);
 					break;	
 				}			
+			}else if(matchInfo.getState() == EMatchState.CORNER_KICK_LEFT || matchInfo.getState() == EMatchState.CORNER_KICK_RIGHT){
+				state = State.CORN_KICK;
+				return;
 			}
 		}			
 	}
@@ -125,31 +130,73 @@ public class Lateral extends Thread {
 		}
 	}
 	
-	/////// estado Blocking ///////
+	/////// Estado CORN_KICK ///////
+	private void cornKick(){
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		Vector2D attackPosition = fieldInfo.getTeamPlayer(selfInfo.getSide(), numerosCamisa[3]).getPosition();
+		if(isMySide()){
+			if (arrivedAt(ballPosition)) {
+				commander.doKickToPoint(100, attackPosition);
+				state = State.ATTACKING;			
+			} else {
+				if (isAlignedTo(ballPosition)) {
+					//_printf("ATK: Running to the ball...");
+					commander.doDashBlocking(100.0d);
+				} else {
+					//_printf("ATK: Turning...");
+					turnTo(ballPosition);
+				}
+			}	
+		}
+	}
+	
+	/////// Estado Blocking ///////
 	private void stateBlocking(){
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		//Vector2D playerPosition = selfInfo.getPosition();
 		
-		if(ballPosition.getX() < 0){
+		if(ballPosition.getX() < 10){
 			state = State.RETURN_TO_HOME;
+			System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>>>>>>>>>Return to home;");
+			return;
+		}
+		if(withMyTeam()){
+			state = State.ATTACKING;
+			System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>>>>>>>>>Attacking");
 			return;
 		}
 		
 		if(isMySide()){
-			if (arrivedAt(ballPosition)) {					
-				//commander.doKickToPointBlocking(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), numerosCamisa[3]).getPosition()));
+			if (arrivedAt(ballPosition)) {		
 				commander.doKickToPointBlocking(100, new Vector2D(52,0));
 				state = State.RETURN_TO_HOME;
+				System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>222222222>>>>>>>>Return to home");
+				return;
 			} else {
 				if (isAlignedTo(ballPosition)) {
-					_printf("ATK: Running to the ball...");
+					//_printf("ATK: Running to the ball...");
 					commander.doDashBlocking(100.0d);				
 				} else {
-					_printf("ATK: Turning...");
+					//_printf("ATK: Turning...");
 					turnTo(ballPosition);
 				}
 			}		
 		}
 		
+	}
+	
+	private boolean withMyTeam(){
+		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		//players = fieldInfo.getTeamPlayers(selfInfo.getSide()==EFieldSide.LEFT?EFieldSide.RIGHT:EFieldSide.LEFT);
+		players = fieldInfo.getTeamPlayers(selfInfo.getSide());
+		for(PlayerPerception p: players){
+			if(arrivedAtAt(p.getPosition(), ballPosition)){
+				//System.out.println("----------------------------------------->Out");
+				return true;				
+			}
+		}
+		return false;
 	}
 	
 	private boolean isMySide(){ //verifica se a bola está na metade do campo que o jogador está
@@ -162,8 +209,9 @@ public class Lateral extends Thread {
 
 	/////// estado RETURN_TO_HOMEBASE ///////
 	private void stateReturnToHomeBase() {
-		if (closerToTheBall()) {
+		if (withMyTeam()) {
 			state = State.ATTACKING;
+			System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Return to home>>>>>>>>>>>>>>>Attacking");
 			return;
 		}
 				
@@ -178,39 +226,33 @@ public class Lateral extends Thread {
 		}	
 	}
 
-	private boolean closerToTheBall() {				
-		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
-		int distanceIndex=0;
-		double auxA, auxB;
-		
-		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
-
-		for(PlayerPerception jogador : players){
-			if(jogador.getClass().equals(PlayerGoalkeeper.class)){
-				players.remove(jogador);
-			}
-		}
-		
-		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
-		
-		for(int i=0;i<players.size();i++){
-			auxB = pointDistance(players.get(i).getPosition(), ballPosition);
-			if(auxA > auxB){
-				distanceIndex = i;
-			}
-		}
-		
-		distanceIndex++;
-		//System.out.println(">>>>>>>>>>"+distanceIndex);
-		return selfInfo.getUniformNumber() == distanceIndex;  
-	}
-	
-	private double pointDistance(Vector2D player, Vector2D ball){
-		double termX = player.getX() - ball.getX();
-		double termY = player.getY() - ball.getY();
-		return Math.sqrt((termX*termX)+(termY*termY));
-	}
+//	private boolean closerToTheBall() {				
+//		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
+//		int distanceIndex=0;
+//		double auxA, auxB;
+//		
+//		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
+//
+//		for(PlayerPerception jogador : players){
+//			if(jogador.getClass().equals(PlayerGoalkeeper.class)){
+//				players.remove(jogador);
+//			}
+//		}
+//		
+//		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+//		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
+//		
+//		for(int i=0;i<players.size();i++){
+//			auxB = pointDistance(players.get(i).getPosition(), ballPosition);
+//			if(auxA > auxB){
+//				distanceIndex = i;
+//			}
+//		}
+//		
+//		distanceIndex++;
+//		//System.out.println(">>>>>>>>>>"+distanceIndex);
+//		return selfInfo.getUniformNumber() == distanceIndex;  
+//	}
 	
 	private boolean arrivedAt(Vector2D targetPosition) {
 		Vector2D myPos = selfInfo.getPosition();
@@ -238,37 +280,42 @@ public class Lateral extends Thread {
 	/////// Estado ATTACKING ///////	
 	
 	private void stateAttacking() {
-		if (!closerToTheBall()) {
-			state = State.RETURN_TO_HOME;
+		if (!withMyTeam()) {
+			state = State.BLOCKING;
+			System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Attacking>>>>>>>>>>>>>>>Blocking");
+			//System.out.println(selfInfo.getUniformNumber()+">>>>>>>>>>>>>>>>>>>>>>>>>>>>blooooooooocccckkkkkkiiiiiiiinnnnnnnnggggg");
 			return;
-		}
+		}		
 
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		Vector2D playerPosition = selfInfo.getPosition();
-		
+						
 		if (arrivedAt(ballPosition)) {
 			commander.doTurnToPoint(new Vector2D(52.0, 0.0));
 			if(playerPosition.getX() >= 26){
 				commander.doKick(100, 0);
+				state = State.RETURN_TO_HOME;
+				System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Attacking>>>>>>>>>>>>>>>Return to home");
+				return;
 			}
 			else{
-				commander.doKickToPoint(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), 4).getPosition()));
+				commander.doKickToPoint(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), numerosCamisa[3]).getPosition()));
+				//state = State.RETURN_TO_HOME;
+				//System.out.println(selfInfo.getUniformNumber()+">>>>>>"+ "Attacking>>>>>>>>>>>>>>>Return to home");
+				//return;
 			}
 		}
 		else{
-			commander.doTurnToPoint(ballPosition);
-			commander.doDash(100.d);
-		}
-		/*else {
-			if (isAlignedTo(ballPosition)) {
-				_printf("ATK: Running to the ball...");
-				commander.doDashBlocking(100.0d);
-			} else {
-				_printf("ATK: Turning...");
-				turnTo(ballPosition);
-			}
-		}*/		
+			if(!isAlignedTo(ballPosition)){
+				commander.doTurnToPointBlocking(ballPosition);
+			}			
+			commander.doDashBlocking(100);
+		}			
 	}
+	
+//	private boolean withPlayer(){
+//		return true;
+//	}
 
 	//for debugging
 	public void _printf(String format, Object...objects) {
