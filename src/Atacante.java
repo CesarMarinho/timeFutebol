@@ -13,7 +13,7 @@ import simple_soccer_lib.utils.Vector2D;
 public class Atacante extends Thread{
 private static final double ERROR_RADIUS = 1.0d;
 	
-	private enum State { ATTACKING, RETURN_TO_HOME, WAITING, KICKOFF};
+	private enum State { ATTACKING, RETURN_TO_HOME, WAITING, KICKOFF, WAITING_ATTACK};
 
 	private PlayerCommander commander;
 	private State state;
@@ -62,7 +62,7 @@ private static final double ERROR_RADIUS = 1.0d;
 		while (commander.isActive()) {
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
 			
-			if(flag && matchInfo.getState() == EMatchState.PLAY_ON) getCamisa();
+			if(flag) getCamisa();
 			
 			if (matchInfo.getState() == EMatchState.PLAY_ON) {				
 				switch (state) {
@@ -78,6 +78,9 @@ private static final double ERROR_RADIUS = 1.0d;
 				case KICKOFF:
 					stateKickoff();
 					break;
+				case WAITING_ATTACK:
+					stateWaitingAttack();
+					break;
 				default:
 					_printf("Invalid state: %s", state);
 					break;	
@@ -86,6 +89,9 @@ private static final double ERROR_RADIUS = 1.0d;
 				//state = State.KICKOFF;
 				stateKickoff();
 				//return;
+			}else if(matchInfo.getState() == EMatchState.CORNER_KICK_LEFT || matchInfo.getState() == EMatchState.CORNER_KICK_RIGHT){
+				System.out.println("><><><><><><><><><><><><><><><><><><><><>");
+				stateWaitingAttack();
 			}
 		}
 			
@@ -127,9 +133,8 @@ private static final double ERROR_RADIUS = 1.0d;
 			}else if(arrivedAtAt(new Vector2D(-5,-28), p.getPosition())){				
 				numerosCamisa[5] = p.getUniformNumber();		
 			}else{
-				System.out.println("astofo");
-			}
-			
+				System.out.println("Atacante ----- astofo"+p.getUniformNumber());
+			}			
 		}
 	}
 	
@@ -137,6 +142,39 @@ private static final double ERROR_RADIUS = 1.0d;
 		//Vector2D myPos = selfInfo.getPosition();
 		return Vector2D.distance(agentPosition, targetPosition) <= ERROR_RADIUS+3;
 	}
+	
+	/////// Estado waitingAttack ///////
+	private void stateWaitingAttack(){
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Entrou!");
+		Vector2D position;
+		Vector2D ballPosition = fieldInfo.getBall().getPosition();
+		Vector2D goalPosition = new Vector2D(52,0);
+		
+		if(arrivedAt(ballPosition)){
+			commander.doKickToPoint(100.0d, goalPosition);
+			commander.doTurnToPoint(goalPosition);
+			state = State.ATTACKING;
+			return;			
+		}
+		
+		if(ballPosition.getY() > 0){
+			position = new Vector2D(36,7);
+		}else{
+			position = new Vector2D(36,-7);
+		}
+		
+		if(!arrivedAt(position)){
+			if(!isAlignedTo(position)){
+				commander.doTurnToPointBlocking(position);
+			}else{
+				commander.doDash(100);
+			}			
+		}else{
+			commander.doTurnToPoint(ballPosition);
+		}
+	}
+	
+	
 	
 	/////// Estado kickoff ///////
 	private void stateKickoff(){

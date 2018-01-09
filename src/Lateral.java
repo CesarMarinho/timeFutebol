@@ -40,27 +40,80 @@ public class Lateral extends Thread {
 				
 		for(PlayerPerception p:players){
 			if(arrivedAtAt(new Vector2D(-52,0), p.getPosition())){				
-				numerosCamisa[0] = p.getUniformNumber();				
+				numerosCamisa[0] = p.getUniformNumber();			
+				
 			}else if(arrivedAtAt(new Vector2D(-25,20), p.getPosition())){				
 				numerosCamisa[1] = p.getUniformNumber();
+				
 			}else if(arrivedAtAt(new Vector2D(-25,-20), p.getPosition())){				
-				numerosCamisa[2] = p.getUniformNumber();				
+				numerosCamisa[2] = p.getUniformNumber();			
+				
 			}else if(arrivedAtAt(new Vector2D(-10,0), p.getPosition())){				
-				numerosCamisa[3] = p.getUniformNumber();				
+				numerosCamisa[3] = p.getUniformNumber();		
+				
 			}else if(arrivedAtAt(new Vector2D(-5,28), p.getPosition())){				
 				numerosCamisa[4] = p.getUniformNumber();
+				
 			}else if(arrivedAtAt(new Vector2D(-5,-28), p.getPosition())){				
 				numerosCamisa[5] = p.getUniformNumber();		
+				
 			}else{
-				System.out.println("astofo");
+				System.out.println("Lateral ----- astofo"+ p.getUniformNumber());
 			}
 			
 		}
 	}
+	
+	/*private void getCamisa(){
+		flag = false;
+		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
+		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
+				
+		for(PlayerPerception p:players){
+			if(arrivedAtAt(new Vector2D(-52,0), p.getPosition())){
+				
+				System.out.println(">>>>>>>>>porra1");
+				numerosCamisa[0] = p.getUniformNumber();
+				
+			}else if(arrivedAtAt(new Vector2D(-25,20), p.getPosition())){
+				
+				numerosCamisa[1] = p.getUniformNumber();
+				System.out.println(">>>>>>>>>porra2");
+				
+			}else if(arrivedAtAt(new Vector2D(-25,-20), p.getPosition())){
+				
+				numerosCamisa[2] = p.getUniformNumber();
+				System.out.println(">>>>>>>>>porra3");
+				
+			}else if(arrivedAtAt(new Vector2D(-10,0), p.getPosition())){
+				
+				numerosCamisa[3] = p.getUniformNumber();
+				System.out.println(">>>>>>>>>porra4");
+				
+			}else if(arrivedAtAt(new Vector2D(-5,28), p.getPosition())){
+				
+				numerosCamisa[4] = p.getUniformNumber();
+				System.out.println(">>>>>>>>>porra5");
+				
+			}else if(arrivedAtAt(new Vector2D(-5,-28), p.getPosition())){
+				
+				numerosCamisa[5] = p.getUniformNumber();
+				System.out.println(">>>>>>>>>porra6");
+				
+			}else{
+				System.out.println("astofo");
+			}
+			//System.out.println(p.getPosition()+" ");
+		}
+		
+//		for(int i=0;i<numerosCamisa.length;i++){
+//			System.out.print(" "+numerosCamisa[i]);
+//		}
+	}*/
 		
 	private boolean arrivedAtAt(Vector2D targetPosition, Vector2D agentPosition) {
 		//Vector2D myPos = selfInfo.getPosition();
-		return Vector2D.distance(agentPosition, targetPosition) <= ERROR_RADIUS+3;
+		return Vector2D.distance(agentPosition, targetPosition) <= ERROR_RADIUS;
 	}
 	
 	@Override
@@ -87,7 +140,7 @@ public class Lateral extends Thread {
 		
 		while (commander.isActive()) {
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
-			if(flag && matchInfo.getState() == EMatchState.PLAY_ON) getCamisa();
+			if(flag) getCamisa();
 			
 			//_printf(" "+state);
 			
@@ -107,8 +160,9 @@ public class Lateral extends Thread {
 					break;	
 				}			
 			}else if(matchInfo.getState() == EMatchState.CORNER_KICK_LEFT || matchInfo.getState() == EMatchState.CORNER_KICK_RIGHT){
-				state = State.CORN_KICK;
-				return;
+				//state = State.CORN_KICK;
+				stateCornerKick();
+				//return;
 			}
 		}			
 	}
@@ -130,8 +184,8 @@ public class Lateral extends Thread {
 		}
 	}
 	
-	/////// Estado CORN_KICK ///////
-	private void cornKick(){
+	/////// Estado CORNER_KICK ///////
+	private void stateCornerKick(){
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		Vector2D attackPosition = fieldInfo.getTeamPlayer(selfInfo.getSide(), numerosCamisa[3]).getPosition();
 		if(isMySide()){
@@ -157,12 +211,12 @@ public class Lateral extends Thread {
 		
 		if(ballPosition.getX() < 10){
 			state = State.RETURN_TO_HOME;
-			System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>>>>>>>>>Return to home;");
+			//System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>>>>>>>>>Return to home;");
 			return;
 		}
 		if(withMyTeam()){
 			state = State.ATTACKING;
-			System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>>>>>>>>>Attacking");
+			//System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>>>>>>>>>Attacking");
 			return;
 		}
 		
@@ -170,7 +224,7 @@ public class Lateral extends Thread {
 			if (arrivedAt(ballPosition)) {		
 				commander.doKickToPointBlocking(100, new Vector2D(52,0));
 				state = State.RETURN_TO_HOME;
-				System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>222222222>>>>>>>>Return to home");
+				//System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Blocking>>>>>>>222222222>>>>>>>>Return to home");
 				return;
 			} else {
 				if (isAlignedTo(ballPosition)) {
@@ -192,7 +246,7 @@ public class Lateral extends Thread {
 		players = fieldInfo.getTeamPlayers(selfInfo.getSide());
 		for(PlayerPerception p: players){
 			if(arrivedAtAt(p.getPosition(), ballPosition)){
-				//System.out.println("----------------------------------------->Out");
+				////System.out.println("----------------------------------------->Out");
 				return true;				
 			}
 		}
@@ -211,7 +265,7 @@ public class Lateral extends Thread {
 	private void stateReturnToHomeBase() {
 		if (withMyTeam()) {
 			state = State.ATTACKING;
-			System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Return to home>>>>>>>>>>>>>>>Attacking");
+			//System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Return to home>>>>>>>>>>>>>>>Attacking");
 			return;
 		}
 				
@@ -250,7 +304,7 @@ public class Lateral extends Thread {
 //		}
 //		
 //		distanceIndex++;
-//		//System.out.println(">>>>>>>>>>"+distanceIndex);
+//		////System.out.println(">>>>>>>>>>"+distanceIndex);
 //		return selfInfo.getUniformNumber() == distanceIndex;  
 //	}
 	
@@ -261,7 +315,7 @@ public class Lateral extends Thread {
 
 	private void turnTo(Vector2D targetPosition) {
 		Vector2D myPos = selfInfo.getPosition();
-		//System.out.println(" => Target = " + targetPosition + " -- Player = " + myPos);
+		////System.out.println(" => Target = " + targetPosition + " -- Player = " + myPos);
 		
 		Vector2D newDirection = targetPosition.sub(myPos);
 		
@@ -282,8 +336,8 @@ public class Lateral extends Thread {
 	private void stateAttacking() {
 		if (!withMyTeam()) {
 			state = State.BLOCKING;
-			System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Attacking>>>>>>>>>>>>>>>Blocking");
-			//System.out.println(selfInfo.getUniformNumber()+">>>>>>>>>>>>>>>>>>>>>>>>>>>>blooooooooocccckkkkkkiiiiiiiinnnnnnnnggggg");
+			//System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Attacking>>>>>>>>>>>>>>>Blocking");
+			////System.out.println(selfInfo.getUniformNumber()+">>>>>>>>>>>>>>>>>>>>>>>>>>>>blooooooooocccckkkkkkiiiiiiiinnnnnnnnggggg");
 			return;
 		}		
 
@@ -295,13 +349,13 @@ public class Lateral extends Thread {
 			if(playerPosition.getX() >= 26){
 				commander.doKick(100, 0);
 				state = State.RETURN_TO_HOME;
-				System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Attacking>>>>>>>>>>>>>>>Return to home");
+				//System.out.println(selfInfo.getUniformNumber()+">>>>>>"+"Attacking>>>>>>>>>>>>>>>Return to home");
 				return;
 			}
 			else{
 				commander.doKickToPoint(100, new Vector2D(fieldInfo.getTeamPlayer(selfInfo.getSide(), numerosCamisa[3]).getPosition()));
 				//state = State.RETURN_TO_HOME;
-				//System.out.println(selfInfo.getUniformNumber()+">>>>>>"+ "Attacking>>>>>>>>>>>>>>>Return to home");
+				////System.out.println(selfInfo.getUniformNumber()+">>>>>>"+ "Attacking>>>>>>>>>>>>>>>Return to home");
 				//return;
 			}
 		}

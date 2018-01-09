@@ -52,7 +52,7 @@ private static final double ERROR_RADIUS = 2.0d;
 			}else if(arrivedAtAt(new Vector2D(-5,-28), p.getPosition())){				
 				numerosCamisa[5] = p.getUniformNumber();		
 			}else{
-				System.out.println("astofo");
+				System.out.println("Zagueiro ----- astofo"+p.getUniformNumber()+" "+p.getPosition());
 			}
 			
 		}
@@ -92,7 +92,7 @@ private static final double ERROR_RADIUS = 2.0d;
 			updatePerceptions();  //deixar aqui, no começo do loop, para ler o resultado do 'move'
 			//_printf(state.toString());
 			//if(flag) getNumeroCamisa();
-			if(flag && matchInfo.getState() == EMatchState.PLAY_ON) getCamisa();
+			if(flag) getCamisa();
 			
 			if (matchInfo.getState() == EMatchState.PLAY_ON) {
 			
