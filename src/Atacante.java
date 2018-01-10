@@ -40,7 +40,7 @@ private static final double ERROR_RADIUS = 1.0d;
 		commander = player;
 		homebase = new Vector2D(x, y);
 		flag = true;
-		goalPosition = new Vector2D(52,20);
+		goalPosition = new Vector2D(52,0);
 	}
 	
 	@Override

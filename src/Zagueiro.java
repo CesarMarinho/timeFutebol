@@ -110,7 +110,8 @@ private static final double ERROR_RADIUS = 2.0d;
 					_printf("Invalid state: %s", state);
 					break;	
 				}				
-			}else if((matchInfo.getState() == EMatchState.OFFSIDE_LEFT)||(matchInfo.getState() == EMatchState.OFFSIDE_RIGHT)){				
+			}else if((matchInfo.getState() == EMatchState.OFFSIDE_LEFT)||(matchInfo.getState() == EMatchState.OFFSIDE_RIGHT)){
+				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>offsideleft ou offsideright");
 				state = State.LATERAL_EXIT;
 			}
 		}
