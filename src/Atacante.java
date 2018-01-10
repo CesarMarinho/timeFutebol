@@ -24,13 +24,23 @@ private static final double ERROR_RADIUS = 1.0d;
 	
 	private Vector2D homebase; //posição base do jogador
 	
+	private Vector2D goalPosition;
+	
 	private int[] numerosCamisa = {0,0,0,0,0,0};
 	private boolean flag;
+	
+	//variáves para troca de lado
+	private int[] xUniformNumber = {-52,-25,-10,-5};
+	private int xAttacking = 36;
+	private int xWaiting = 1;
+	private int xAttackingToHome = -15;
+	private int xAttackingKick = 26;
 	
 	public Atacante(PlayerCommander player, double x, double y) {
 		commander = player;
 		homebase = new Vector2D(x, y);
 		flag = true;
+		goalPosition = new Vector2D(52,20);
 	}
 	
 	@Override
@@ -43,14 +53,9 @@ private static final double ERROR_RADIUS = 1.0d;
 		
 		state = State.RETURN_TO_HOME; //todos começam neste estado
 		
-		
-		//_printf("Starting in a random position...");
-		//commander.doMoveBlocking(Math.random() * (selfInfo.getSide() == EFieldSide.LEFT ? -52.0 : 52.0), (Math.random() * 68.0) - 34.0);
- 
 		if (selfInfo.getSide() == EFieldSide.RIGHT) { //ajusta a posição base de acordo com o lado do jogador (basta mudar o sinal do x)
-			homebase.setX(- homebase.getX());
-		}
-		
+			swapSides();
+		}		
 		commander.doMoveBlocking(homebase.getX(), homebase.getY());
 		
 		try {
@@ -90,7 +95,7 @@ private static final double ERROR_RADIUS = 1.0d;
 				stateKickoff();
 				//return;
 			}else if(matchInfo.getState() == EMatchState.CORNER_KICK_LEFT || matchInfo.getState() == EMatchState.CORNER_KICK_RIGHT){
-				System.out.println("><><><><><><><><><><><><><><><><><><><><>");
+				System.out.println("<><><><><><><><><><><><><><><><><><><><><>");
 				stateWaitingAttack();
 			}
 		}
@@ -120,22 +125,34 @@ private static final double ERROR_RADIUS = 1.0d;
 		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
 				
 		for(PlayerPerception p:players){
-			if(arrivedAtAt(new Vector2D(-52,0), p.getPosition())){				
+			if(arrivedAtAt(new Vector2D(xUniformNumber[0],0), p.getPosition())){				
 				numerosCamisa[0] = p.getUniformNumber();				
-			}else if(arrivedAtAt(new Vector2D(-25,20), p.getPosition())){				
-				numerosCamisa[1] = p.getUniformNumber();
-			}else if(arrivedAtAt(new Vector2D(-25,-20), p.getPosition())){				
-				numerosCamisa[2] = p.getUniformNumber();				
-			}else if(arrivedAtAt(new Vector2D(-10,0), p.getPosition())){				
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[1],20), p.getPosition())){				
+				numerosCamisa[1] = p.getUniformNumber();				
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[1],-20), p.getPosition())){				
+				numerosCamisa[2] = p.getUniformNumber();					
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[2],0), p.getPosition())){				
 				numerosCamisa[3] = p.getUniformNumber();				
-			}else if(arrivedAtAt(new Vector2D(-5,28), p.getPosition())){				
-				numerosCamisa[4] = p.getUniformNumber();
-			}else if(arrivedAtAt(new Vector2D(-5,-28), p.getPosition())){				
-				numerosCamisa[5] = p.getUniformNumber();		
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[3],28), p.getPosition())){				
+				numerosCamisa[4] = p.getUniformNumber();				
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[3],-28), p.getPosition())){				
+				numerosCamisa[5] = p.getUniformNumber();				
 			}else{
-				System.out.println("Atacante ----- astofo"+p.getUniformNumber());
+				System.out.println("Atacante ----- astofo"+ p.getUniformNumber());
 			}			
 		}
+	}
+	
+	private void swapSides(){		
+		for(int i=0;i<xUniformNumber.length;i++){
+			xUniformNumber[i] = xUniformNumber[i]*(-1);
+		}
+		homebase.setX(homebase.getX()*(-1));
+		goalPosition.setX(goalPosition.getX()*(-1));
+		xAttacking = xAttacking*(-1);
+		xWaiting = xWaiting*(-1);
+		xAttackingToHome = xAttackingToHome*(-1);
+		xAttackingKick = xAttackingKick*(-1);
 	}
 	
 	private boolean arrivedAtAt(Vector2D targetPosition, Vector2D agentPosition) {
@@ -148,8 +165,7 @@ private static final double ERROR_RADIUS = 1.0d;
 		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Entrou!");
 		Vector2D position;
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		Vector2D goalPosition = new Vector2D(52,0);
-		
+				
 		if(arrivedAt(ballPosition)){
 			commander.doKickToPoint(100.0d, goalPosition);
 			commander.doTurnToPoint(goalPosition);
@@ -158,9 +174,9 @@ private static final double ERROR_RADIUS = 1.0d;
 		}
 		
 		if(ballPosition.getY() > 0){
-			position = new Vector2D(36,7);
+			position = new Vector2D(xAttacking,7);
 		}else{
-			position = new Vector2D(36,-7);
+			position = new Vector2D(xAttacking,-7);
 		}
 		
 		if(!arrivedAt(position)){
@@ -179,14 +195,10 @@ private static final double ERROR_RADIUS = 1.0d;
 	/////// Estado kickoff ///////
 	private void stateKickoff(){
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		//Vector2D playerPosition = selfInfo.getPosition();
-		//Vector2D lateralPosition
-		//System.out.println("<><><><><><><><><><><><><><><><><><><><><><");
-		Vector2D point = new Vector2D(52,0);
-		
+				
 		if (arrivedAt(ballPosition)) {
 			//commander.doKickToPoint(80, fieldInfo.getTeamPlayer(selfInfo.getSide(), numerosCamisa[4]).getPosition());
-			commander.doKickToPoint(100, point);
+			commander.doKickToPoint(100, goalPosition);
 			state = State.ATTACKING;			
 		} else {
 			if (isAlignedTo(ballPosition)) {
@@ -203,7 +215,7 @@ private static final double ERROR_RADIUS = 1.0d;
 	private void stateWaiting(){
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		
-		if(ballPosition.getX() >= 0){
+		if(ballPosition.getX() >= xWaiting){
 			state = State.ATTACKING;
 			return;
 		}
@@ -215,7 +227,7 @@ private static final double ERROR_RADIUS = 1.0d;
 	private void stateReturnToHomeBase() {
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		
-		if (ballPosition.getX() > 0) {
+		if (ballPosition.getX() > xWaiting) {
 			state = State.ATTACKING;
 			return;
 		}
@@ -236,34 +248,6 @@ private static final double ERROR_RADIUS = 1.0d;
 			
 	}
 
-//	private boolean closerToTheBall() {
-//				
-//		ArrayList<PlayerPerception> players = new ArrayList<PlayerPerception>();
-//		int distanceIndex=0;
-//		double auxA, auxB;
-//		
-//		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
-//		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-//		auxA = pointDistance(players.get(0).getPosition(), ballPosition);
-//		
-//		for(int i=0;i<players.size();i++){
-//			auxB = pointDistance(players.get(i).getPosition(), ballPosition);
-//			if(auxA > auxB){
-//				distanceIndex = i;
-//			}
-//		}
-//		
-//		distanceIndex++;
-//		//System.out.println(">>>>>>>>>>"+distanceIndex);
-//		return selfInfo.getUniformNumber() == distanceIndex;  
-//	}
-	
-//	private double pointDistance(Vector2D player, Vector2D ball){
-//		double termX = player.getX() - ball.getX();
-//		double termY = player.getY() - ball.getY();
-//		return Math.sqrt((termX*termX)+(termY*termY));
-//	}
-	
 	private boolean arrivedAt(Vector2D targetPosition) {
 		Vector2D myPos = selfInfo.getPosition();
 		return Vector2D.distance(myPos, targetPosition) <= ERROR_RADIUS;
@@ -293,14 +277,14 @@ private static final double ERROR_RADIUS = 1.0d;
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		Vector2D playerPosition = selfInfo.getPosition();
 		
-		if (ballPosition.getX() < -15) {
+		if (ballPosition.getX() < xAttackingToHome) {
 			state = State.RETURN_TO_HOME;
 			return;
 		}		
 		
 		if (arrivedAt(ballPosition)) {
-			commander.doTurnToPointBlocking(new Vector2D(52.0, 0.0));
-			if(playerPosition.getX() >= 26){
+			commander.doTurnToPointBlocking(goalPosition);
+			if(playerPosition.getX() >= xAttackingKick){
 				commander.doKickBlocking(100, 0);
 			}
 			

@@ -27,6 +27,10 @@ private static final double ERROR_RADIUS = 2.0d;
 	private int[] numerosCamisa = {0,0,0,0,0,0};
 	private boolean flag;
 	
+	//variaveis para troca de lado
+	private int[] xUniformNumber = {-52,-25,-10,-5};
+	private int xWaiting = 1;
+	
 	public Zagueiro(PlayerCommander player, double x, double y) {
 		commander = player;
 		homebase = new Vector2D(x, y);
@@ -39,27 +43,22 @@ private static final double ERROR_RADIUS = 2.0d;
 		players.addAll(fieldInfo.getTeamPlayers(selfInfo.getSide()));
 				
 		for(PlayerPerception p:players){
-			if(arrivedAtAt(new Vector2D(-52,0), p.getPosition())){				
+			if(arrivedAtAt(new Vector2D(xUniformNumber[0],0), p.getPosition())){				
 				numerosCamisa[0] = p.getUniformNumber();				
-			}else if(arrivedAtAt(new Vector2D(-25,20), p.getPosition())){				
-				numerosCamisa[1] = p.getUniformNumber();
-			}else if(arrivedAtAt(new Vector2D(-25,-20), p.getPosition())){				
-				numerosCamisa[2] = p.getUniformNumber();				
-			}else if(arrivedAtAt(new Vector2D(-10,0), p.getPosition())){				
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[1],20), p.getPosition())){				
+				numerosCamisa[1] = p.getUniformNumber();				
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[1],-20), p.getPosition())){				
+				numerosCamisa[2] = p.getUniformNumber();					
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[2],0), p.getPosition())){				
 				numerosCamisa[3] = p.getUniformNumber();				
-			}else if(arrivedAtAt(new Vector2D(-5,28), p.getPosition())){				
-				numerosCamisa[4] = p.getUniformNumber();
-			}else if(arrivedAtAt(new Vector2D(-5,-28), p.getPosition())){				
-				numerosCamisa[5] = p.getUniformNumber();		
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[3],28), p.getPosition())){				
+				numerosCamisa[4] = p.getUniformNumber();				
+			}else if(arrivedAtAt(new Vector2D(xUniformNumber[3],-28), p.getPosition())){				
+				numerosCamisa[5] = p.getUniformNumber();				
 			}else{
-				System.out.println("Zagueiro ----- astofo"+p.getUniformNumber()+" "+p.getPosition());
-			}
-			
+				System.out.println("Zagueiro ----- astofo"+ p.getUniformNumber());
+			}			
 		}
-		
-//		for(int i=0;i<numerosCamisa.length;i++){
-//			System.out.print(" "+numerosCamisa[i]);
-//		}
 	}
 	
 	@Override
@@ -71,13 +70,8 @@ private static final double ERROR_RADIUS = 2.0d;
 		
 		state = State.RETURN_TO_HOME; //todos começam neste estado
 		
-		//_printf(state+" ");
-		
-		//_printf("Starting in a random position...");
-		//commander.doMoveBlocking(Math.random() * (selfInfo.getSide() == EFieldSide.LEFT ? -52.0 : 52.0), (Math.random() * 68.0) - 34.0);
- 
 		if (selfInfo.getSide() == EFieldSide.RIGHT) { //ajusta a posição base de acordo com o lado do jogador (basta mudar o sinal do x)
-			homebase.setX(- homebase.getX());
+			swapSides();
 		}
 		
 		commander.doMoveBlocking(homebase.getX(), homebase.getY());	
@@ -116,7 +110,7 @@ private static final double ERROR_RADIUS = 2.0d;
 					_printf("Invalid state: %s", state);
 					break;	
 				}				
-			}else if((matchInfo.getState() == EMatchState.OFFSIDE_LEFT)||(matchInfo.getState() == EMatchState.OFFSIDE_RIGHT)){
+			}else if((matchInfo.getState() == EMatchState.OFFSIDE_LEFT)||(matchInfo.getState() == EMatchState.OFFSIDE_RIGHT)){				
 				state = State.LATERAL_EXIT;
 			}
 		}
@@ -138,6 +132,14 @@ private static final double ERROR_RADIUS = 2.0d;
 		if (newMatch != null) {
 			this.matchInfo = newMatch;
 		}
+	}
+	
+	private void swapSides(){
+		for(int i=0;i<xUniformNumber.length;i++){
+			xUniformNumber[i] = xUniformNumber[i]*(-1);
+		}
+		xWaiting = xWaiting*(-1);
+		homebase.setX(homebase.getX()*(-1));
 	}
 	
 	/////// Estado lateralExit ///////
@@ -195,7 +197,7 @@ private static final double ERROR_RADIUS = 2.0d;
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		//Vector2D playerPosition = selfInfo.getPosition();
 		///_printf("Entrou no waiting");
-		if(ballPosition.getX() <= 0){
+		if(ballPosition.getX() <= xWaiting){
 			state = State.BLOCKING;
 			return;
 		}else{
@@ -223,7 +225,7 @@ private static final double ERROR_RADIUS = 2.0d;
 		
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
 		
-		if(ballPosition.getX() < 0){
+		if(ballPosition.getX() < xWaiting){
 			state = State.BLOCKING;
 			return;
 		}
@@ -274,7 +276,7 @@ private static final double ERROR_RADIUS = 2.0d;
 	
 	private void stateBlocking() {
 		Vector2D ballPosition = fieldInfo.getBall().getPosition();
-		if(ballPosition.getX() >= 0){
+		if(ballPosition.getX() >= xWaiting){
 			state = State.RETURN_TO_HOME;
 			return;
 		}

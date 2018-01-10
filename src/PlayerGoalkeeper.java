@@ -24,16 +24,14 @@ public class PlayerGoalkeeper extends Thread{
 	private MatchPerception  matchInfo;
 	
 	private Vector2D homebase; //centro do gol
-	private Vector2D home_left; //mais a esquerda
-	private Vector2D home_right; //mais a direita
-	private Vector2D max_attack; //posição mais adiantada do goleiro
+
+	//variaveis para trocar de lado
+	private int xBackLimitarMovimento = -52;
+	private int xFrontLimitarMovimento = -36;
 	
 	public PlayerGoalkeeper(PlayerCommander player) {
 		commander = player;
 		homebase = new Vector2D(-52.0d, 0.0d);
-		//selfInfo.setGoalie(true);
-		home_left = new Vector2D(-52.4d, 4.5d);
-		home_right = new Vector2D(-52.4d, -4.5d);
 	}
 	
 	@Override
@@ -41,14 +39,12 @@ public class PlayerGoalkeeper extends Thread{
 		_printf("Waiting initial perceptions...");
 		selfInfo  = commander.perceiveSelfBlocking();
 		fieldInfo = commander.perceiveFieldBlocking();
-		matchInfo = commander.perceiveMatchBlocking();
-		
+		matchInfo = commander.perceiveMatchBlocking();		
 		
 		state = State.RETURN_TO_HOME; //todos começam neste estado
 		if (selfInfo.getSide() == EFieldSide.RIGHT) { //ajusta a posição base de acordo com o lado do jogador (basta mudar o sinal do x)
-			homebase.setX(- homebase.getX());
-		}
-		
+			swapSides();
+		}		
 		commander.doMoveBlocking(homebase.getX(), homebase.getY());
 		commander.doTurnToPoint(new Vector2D(0,0));
 		
@@ -72,10 +68,15 @@ public class PlayerGoalkeeper extends Thread{
 				default:
 					_printf("Invalid state: %s", state);
 					break;	
-				}
-				
+				}				
 			}
 		}
+	}
+	
+	private void swapSides(){
+		homebase.setX(homebase.getX()*(-1));
+		xBackLimitarMovimento = xBackLimitarMovimento*(-1);
+		xFrontLimitarMovimento = xFrontLimitarMovimento*(-1);
 	}
 	
 	private void stateRETURN_TO_HOME() {
@@ -98,32 +99,7 @@ public class PlayerGoalkeeper extends Thread{
 		}
 		
 		commander.doTurnToPoint(ball);
-		/*
-		if(ballPosY > 14){
-			max_attack = new Vector2D(homebase.getX(), 4.0d);
-		}
-		else if(ballPosY < -14){
-			max_attack = new Vector2D(homebase.getX(), -4.0d);
-		}
-		else{
-			max_attack = homebase;
-		}
 		
-		if(!arrivedAt(max_attack)){
-			commander.doTurnToPoint(max_attack);
-			System.out.println(max_attack);
-			commander.doDash(50.0d);
-		}*/
-		
-
-		
-		/*if(ballPosX > 0){
-			max_attack = new Vector2D(-42.0d, selfInfo.getPosition().getY());
-			commander.doTurnToPoint(max_attack);
-			commander.doDash(30.0d);
-		}*/
-		
-		//state = State.BLOCKING;
 	}
 
 	private void stateBLOCKING() {
@@ -195,7 +171,7 @@ public class PlayerGoalkeeper extends Thread{
 		Vector2D ballPos = fieldInfo.getBall().getPosition();
 		Double x = ballPos.getX();
 		Double y = ballPos.getY();
-		if(x > -52 && x < -36 && y > -20 && y < 20){
+		if(x > xBackLimitarMovimento && x < xFrontLimitarMovimento && y > -20 && y < 20){
 			return true;
 		}
 		else{
