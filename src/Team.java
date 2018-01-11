@@ -27,10 +27,10 @@ public class Team extends AbstractTeam {
 			Atacante a = new Atacante(commander, -10, 0);
 			a.start();
 		}else if(ag==4){
-			Lateral l = new Lateral(commander, -5, 28);
+			Lateral l = new Lateral(commander, -5, 28, 11);
 			l.start();
 		}else if(ag==5){
-			Lateral l = new Lateral(commander, -5, -28);
+			Lateral l = new Lateral(commander, -5, -28, -11);
 			l.start();
 		}
 	}

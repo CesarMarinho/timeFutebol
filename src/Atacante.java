@@ -90,7 +90,7 @@ private static final double ERROR_RADIUS = 1.0d;
 					_printf("Invalid state: %s", state);
 					break;	
 				}				
-			}else if(matchInfo.getState() == EMatchState.KICK_OFF_LEFT){				
+			}else if(matchInfo.getState() == EMatchState.KICK_OFF_LEFT || matchInfo.getState() == EMatchState.KICK_OFF_RIGHT){				
 				//state = State.KICKOFF;
 				stateKickoff();
 				//return;
